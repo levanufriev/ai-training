@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Expense Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .expense-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monthly Expense Calculator</h1>
+    
+    <div class="expense-form">
+        <h2>Add New Expense</h2>
+        <div id="error-message" class="error"></div>
+        <div>
+            <label for="category">Category:</label>
+            <input type="text" id="category" placeholder="e.g. Groceries">
+        </div>
+        <div>
+            <label for="amount">Amount ($):</label>
+            <input type="number" id="amount" placeholder="e.g. 15000">
+        </div>
+        <button id="add-btn">Add Expense</button>
+    </div>
+    
+    <h2>Your Expenses</h2>
+    <table id="expense-table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Amount ($)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Expenses will be added here -->
+        </tbody>
+    </table>
+    
+    <button id="calculate-btn">Calculate</button>
+    
+    <div id="results" class="results" style="display: none;">
+        <h2>Expense Analysis</h2>
+        <div id="total-amount"></div>
+        <div id="avg-daily"></div>
+        <div id="top-expenses"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addBtn = document.getElementById('add-btn');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const expenseTable = document.getElementById('expense-table').getElementsByTagName('tbody')[0];
+            const errorMessage = document.getElementById('error-message');
+            const resultsDiv = document.getElementById('results');
+            
+            let expenses = [];
+            
+            // Add expense to the table
+            addBtn.addEventListener('click', function() {
+                const category = document.getElementById('category').value.trim();
+                const amount = parseFloat(document.getElementById('amount').value);
+                
+                // Validate input
+                if (!category || isNaN(amount) || amount <= 0) {
+                    errorMessage.textContent = 'Please enter a valid category and amount (greater than 0)';
+                    return;
+                }
+                
+                errorMessage.textContent = '';
+                
+                // Add to expenses array
+                expenses.push({ category, amount });
+                
+                // Add to table
+                const newRow = expenseTable.insertRow();
+                newRow.innerHTML = `
+                    <td>${category}</td>
+                    <td>${amount.toLocaleString()}</td>
+                    <td><button class="delete-btn">Delete</button></td>
+                `;
+                
+                // Clear input fields
+                document.getElementById('category').value = '';
+                document.getElementById('amount').value = '';
+                
+                // Add event listener to delete button
+                newRow.querySelector('.delete-btn').addEventListener('click', function() {
+                    const rowIndex = newRow.rowIndex - 1;
+                    expenses.splice(rowIndex, 1);
+                    expenseTable.deleteRow(rowIndex);
+                });
+            });
+            
+            // Calculate results
+            calculateBtn.addEventListener('click', function() {
+                if (expenses.length === 0) {
+                    errorMessage.textContent = 'Please add at least one expense';
+                    return;
+                }
+                
+                errorMessage.textContent = '';
+                
+                // Calculate total amount
+                const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                
+                // Calculate average daily expense (assuming 30 days)
+                const avgDaily = total / 30;
+                
+                // Get top 3 expenses
+                const sortedExpenses = [...expenses].sort((a, b) => b.amount - a.amount);
+                const top3 = sortedExpenses.slice(0, 3);
+                
+                // Display results
+                document.getElementById('total-amount').innerHTML = 
+                    `<strong>Total amount of expenses:</strong> ${total.toLocaleString()} $`;
+                
+                document.getElementById('avg-daily').innerHTML = 
+                    `<strong>Average daily expense:</strong> ${avgDaily.toLocaleString(undefined, {maximumFractionDigits: 2})} $`;
+                
+                let topExpensesHTML = '<strong>Top 3 largest expenses:</strong><ol>';
+                top3.forEach(expense => {
+                    topExpensesHTML += `<li>${expense.category} (${expense.amount.toLocaleString()} $)</li>`;
+                });
+                topExpensesHTML += '</ol>';
+                document.getElementById('top-expenses').innerHTML = topExpensesHTML;
+                
+                // Show results
+                resultsDiv.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
