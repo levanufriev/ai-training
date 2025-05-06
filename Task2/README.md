@@ -1,11 +1,9 @@
 ## How to Run the Tests
 
-Install required packages:
+### Install required packages:
 
-```bash
 pip install pytest requests
 
-Run the tests:
+### Run the tests:
 
-```bash
 pytest test_fakestoreapi.py -v
